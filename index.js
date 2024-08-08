@@ -46,6 +46,13 @@ async function run() {
         
     })
 
+    app.post("/logout", (req, res)=>{
+        const user = req.body;
+        console.log("logging out ", user);
+        
+        res.clearCookie('token', {maxAge: 0}).send({success:true});
+    })
+
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
