@@ -3,11 +3,15 @@ const app = express();
 const cors = require('cors');
 require('dotenv').config();
 const { MongoClient, ServerApiVersion } = require('mongodb');
+const jwt = require('jsonwebtoken');
 
 const port = process.env.PORT || 3000;
 
 // Middleware
-app.use(cors);
+app.use(cors({
+    origin: ["http://localhost:5173"],
+    credentials: true
+}));
 app.use(express.json());
 
 
@@ -26,6 +30,21 @@ async function run() {
   try {
     await client.connect();
 
+    // APIs
+    app.post("/jwt", (req, res)=>{
+        const user = req.body;
+        console.log("User for token", user);
+        const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1h'});
+
+        // cookie set and send res
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'none'
+        })
+        .send({success: true});
+        
+    })
 
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
