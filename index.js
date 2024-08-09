@@ -15,7 +15,6 @@ app.use(cors({
 app.use(express.json());
 
 
-
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.2vsxcvm.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 const client = new MongoClient(uri, {
@@ -30,7 +29,17 @@ async function run() {
   try {
     await client.connect();
 
+    const userCollection = client.db("jwt").collection("users");
+
     // APIs
+
+    app.post("/users", async(req, res)=>{
+      const newUser = req.body;
+      console.log(newUser);
+      const result = await userCollection.insertOne(newUser);
+      res.send(result);
+    })
+
     app.post("/jwt", (req, res)=>{
         const user = req.body;
         console.log("User for token", user);
@@ -56,7 +65,7 @@ async function run() {
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
-    await client.close();
+    // await client.close();
   }
 }
 run().catch(console.dir);
