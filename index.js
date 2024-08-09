@@ -4,6 +4,7 @@ const cors = require('cors');
 require('dotenv').config();
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
 
 const port = process.env.PORT || 3000;
 
@@ -13,6 +14,28 @@ app.use(cors({
     credentials: true
 }));
 app.use(express.json());
+app.use(cookieParser());
+
+const logger = (req, res, next)=>{
+  console.log("Logger Middleware ", req.method, req.url);
+  next();
+}
+const verifyToken = (req, res, next)=>{
+  const token = req.cookies?.token;
+  if(!token)
+  {
+    return res.status(401).send({message:"unauthorized"});
+  }
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded)=>{
+    if(err)
+    {
+      return res.status(401).send({message:"unauthorized"});
+    }
+    req.user = decoded;
+    next();
+  })
+}
+
 
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.2vsxcvm.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
@@ -32,13 +55,23 @@ async function run() {
     const userCollection = client.db("jwt").collection("users");
 
     // APIs
+    app.get("/users", logger, verifyToken, async(req,res)=>{
+
+      console.log("Cookies from user's home: ", req.cookies);
+      console.log("Token owner info: ", req.user);      
+
+      const cursor = userCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    })
 
     app.post("/users", async(req, res)=>{
       const newUser = req.body;
-      console.log(newUser);
+      // console.log(newUser);
       const result = await userCollection.insertOne(newUser);
       res.send(result);
     })
+
 
     app.post("/jwt", (req, res)=>{
         const user = req.body;
