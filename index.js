@@ -10,7 +10,7 @@ const port = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors({
-    origin: ["http://localhost:5173"],
+    origin: ["http://localhost:5173", "https://jwt-auth-2f433.web.app", "https://jwt-auth-2f433.firebaseapp.com"],
     credentials: true
 }));
 app.use(express.json());
@@ -50,7 +50,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    await client.connect();
+    // await client.connect();
 
     const userCollection = client.db("jwt").collection("users");
 
@@ -81,7 +81,7 @@ async function run() {
         // cookie set and send res
         res.cookie('token', token, {
             httpOnly: true,
-            secure: true,
+            secure: process.env.NODE_ENV ==="production" ? true : false,
             sameSite: 'none'
         })
         .send({success: true});
@@ -95,7 +95,7 @@ async function run() {
         res.clearCookie('token', {maxAge: 0}).send({success:true});
     })
 
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // await client.close();
