@@ -10,7 +10,7 @@ const port = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors({
-    origin: ["http://localhost:5173", "https://jwt-auth-2f433.web.app", "https://jwt-auth-2f433.firebaseapp.com"],
+    origin: ["http://localhost:5173", "https://jwt-auth-2f433.web.app", "https://jwt-auth-2f433.web.app"],
     credentials: true
 }));
 app.use(express.json());
